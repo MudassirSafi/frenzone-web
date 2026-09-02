@@ -98,7 +98,7 @@ export function PortalShell({ product, links, children }: Props) {
             <div className="pt-6 border-t border-border mt-6 px-1">
               <div className="rounded-2xl border border-border bg-surface p-3.5 shadow-sm space-y-2">
                 <div className="flex items-center space-x-3">
-                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-violet-600 to-indigo-600 text-white font-extrabold text-xs shadow-sm">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-brand to-cta text-white font-extrabold text-xs shadow-sm">
                     {product === "Creator" ? <User className="h-4 w-4" /> : <Building2 className="h-4 w-4" />}
                   </div>
                   <div className="overflow-hidden">

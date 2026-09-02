@@ -1,0 +1,2 @@
+import type { ReactNode } from "react";
+export function Alert({ children, tone = "info" }: { children: ReactNode; tone?: "info" | "success" | "warning" | "danger" }) { const colors = { info: "border-blue-200 bg-blue-50 text-info", success: "border-green-200 bg-green-50 text-success", warning: "border-amber-200 bg-amber-50 text-warning", danger: "border-red-200 bg-red-50 text-danger" }; return <div className={`rounded-md border p-3 text-sm ${colors[tone]}`} role="status">{children}</div>; }

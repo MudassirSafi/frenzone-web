@@ -1,0 +1,1 @@
+export function LoadingState({ label = "Loading content" }: { label?: string }) { return <div className="animate-pulse rounded-xl border bg-surface p-6" aria-label={label} role="status"><div className="h-5 w-1/3 rounded bg-surface-muted" /><div className="mt-4 h-20 rounded bg-surface-muted" /><span className="sr-only">{label}</span></div>; }

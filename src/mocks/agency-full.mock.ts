@@ -1,0 +1,257 @@
+import type {
+  AgencyDashboard,
+  AgencyProfile,
+  AgencyCreatorItem,
+  AgencyInvitation,
+  AgencyPerformance,
+  AgencyCommissionReport,
+  AgencyInvoice,
+  AgencyPayoutAccount,
+} from "@/types/agency";
+import type { SupportTicket } from "@/types/creator";
+
+export const agencyDashboardMock: AgencyDashboard = {
+  totalCreators: 24,
+  activeCreators: 18,
+  liveHours: 485,
+  liveHoursTarget: 600,
+  contentCompletion: 81,
+  pendingPayout: { amount: "12,450.00", currency: "USD" },
+  estimatedCommissionMonth: { amount: "18,600.00", currency: "USD" },
+  recentAlerts: [
+    {
+      id: "alt-1",
+      title: "Creator Target Achieved",
+      message: "Elena Rostova hit 100% of her monthly streaming hours requirement.",
+      type: "success",
+      timestamp: "1 hour ago",
+    },
+    {
+      id: "alt-2",
+      title: "Compliance Warning",
+      message: "Marcus Beats has missed 2 consecutive stream days.",
+      type: "warning",
+      timestamp: "4 hours ago",
+    },
+    {
+      id: "alt-3",
+      title: "New Creator Invitation Accepted",
+      message: "Sarah Jenkins accepted your agency invitation.",
+      type: "info",
+      timestamp: "Yesterday",
+    },
+  ],
+};
+
+export const agencyProfileMock: AgencyProfile = {
+  id: "ag-4012",
+  agencyName: "Apex Creator Media LLC",
+  country: "United States",
+  businessAddress: "750 Lexington Ave, Floor 14, New York, NY 10022",
+  registrationNumber: "US-NY-991823901",
+  taxId: "EIN-88-2910392",
+  website: "https://apexcreators.com",
+  mainContactName: "David Sterling",
+  mainContactEmail: "david@apexcreators.com",
+  mainContactPhone: "+1 (212) 555-0199",
+  targetMarkets: ["North America", "Europe", "Latin America"],
+  creatorsManagedCount: 24,
+  status: "VERIFIED",
+};
+
+export const agencyCreatorsMock: AgencyCreatorItem[] = [
+  {
+    id: "ac-1",
+    creatorId: "cr-1092",
+    name: "Alex Rivera",
+    username: "alex_vibe",
+    avatarUrl: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80",
+    category: "Music & Gaming",
+    monthlyLiveHours: 42,
+    complianceRate: 95,
+    monthlyRevenue: { amount: "4,330.00", currency: "USD" },
+    agencyCommission: { amount: "866.00", currency: "USD" },
+    status: "ACTIVE",
+    joinedDate: "2026-02-01",
+  },
+  {
+    id: "ac-2",
+    creatorId: "cr-1093",
+    name: "Elena Rostova",
+    username: "elena_live",
+    avatarUrl: "https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80",
+    category: "IRL & Lifestyle",
+    monthlyLiveHours: 58,
+    complianceRate: 100,
+    monthlyRevenue: { amount: "6,800.00", currency: "USD" },
+    agencyCommission: { amount: "1,360.00", currency: "USD" },
+    status: "ACTIVE",
+    joinedDate: "2026-03-15",
+  },
+  {
+    id: "ac-3",
+    creatorId: "cr-1094",
+    name: "Marcus Chen",
+    username: "marcus_beats",
+    avatarUrl: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    category: "Music Production",
+    monthlyLiveHours: 24,
+    complianceRate: 65,
+    monthlyRevenue: { amount: "2,900.00", currency: "USD" },
+    agencyCommission: { amount: "580.00", currency: "USD" },
+    status: "ACTIVE",
+    joinedDate: "2026-04-10",
+  },
+  {
+    id: "ac-4",
+    creatorId: "cr-1095",
+    name: "Sarah Jenkins",
+    username: "sarah_j_games",
+    avatarUrl: "https://images.unsplash.com/photo-1438761681033-6461ffad8d80?w=150&auto=format&fit=crop&q=80",
+    category: "Esports & Gaming",
+    monthlyLiveHours: 36,
+    complianceRate: 88,
+    monthlyRevenue: { amount: "3,750.00", currency: "USD" },
+    agencyCommission: { amount: "750.00", currency: "USD" },
+    status: "ACTIVE",
+    joinedDate: "2026-05-20",
+  },
+  {
+    id: "ac-5",
+    creatorId: "cr-1096",
+    name: "Liam O'Connor",
+    username: "liam_talks",
+    avatarUrl: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    category: "Podcast & Talk Show",
+    monthlyLiveHours: 12,
+    complianceRate: 40,
+    monthlyRevenue: { amount: "1,200.00", currency: "USD" },
+    agencyCommission: { amount: "240.00", currency: "USD" },
+    status: "PENDING_TRANSFER",
+    joinedDate: "2026-06-01",
+  },
+];
+
+export const agencyInvitationsMock: AgencyInvitation[] = [
+  {
+    id: "inv-901",
+    creatorUsername: "chloe_dance",
+    creatorEmail: "chloe@example.com",
+    sentDate: "2026-08-28",
+    expiresDate: "2026-09-04",
+    status: "PENDING_CONSENT",
+  },
+  {
+    id: "inv-902",
+    creatorUsername: "dylan_vlog",
+    creatorEmail: "dylan@example.com",
+    sentDate: "2026-08-25",
+    expiresDate: "2026-09-01",
+    status: "PENDING_APPROVAL",
+  },
+  {
+    id: "inv-903",
+    creatorUsername: "nora_art",
+    creatorEmail: "nora@example.com",
+    sentDate: "2026-08-15",
+    expiresDate: "2026-08-22",
+    status: "APPROVED",
+  },
+];
+
+export const agencyPerformanceMock: AgencyPerformance = {
+  totalLiveHoursAggregate: 485,
+  totalCreatorCount: 24,
+  avgHoursPerCreator: 20.2,
+  grossCreatorRevenue: { amount: "93,000.00", currency: "USD" },
+  netAgencyCommission: { amount: "18,600.00", currency: "USD" },
+  categoryBreakdown: [
+    { category: "Music & Performance", creatorsCount: 8, hoursStreamed: 180, revenue: { amount: "38,000.00", currency: "USD" } },
+    { category: "Gaming & Esports", creatorsCount: 10, hoursStreamed: 210, revenue: { amount: "42,000.00", currency: "USD" } },
+    { category: "IRL & Lifestyle", creatorsCount: 6, hoursStreamed: 95, revenue: { amount: "13,000.00", currency: "USD" } },
+  ],
+  monthlyTrends: [
+    { month: "Apr 2026", liveHours: 320, grossRevenue: 62000, commission: 12400 },
+    { month: "May 2026", liveHours: 390, grossRevenue: 74000, commission: 14800 },
+    { month: "Jun 2026", liveHours: 420, grossRevenue: 81000, commission: 16200 },
+    { month: "Jul 2026", liveHours: 460, grossRevenue: 88000, commission: 17600 },
+    { month: "Aug 2026", liveHours: 485, grossRevenue: 93000, commission: 18600 },
+  ],
+};
+
+export const agencyCommissionsMock: AgencyCommissionReport = {
+  period: "August 2026",
+  grossRevenue: { amount: "93,000.00", currency: "USD" },
+  agencyCommissionRatePercentage: 20,
+  grossCommissionAmount: { amount: "18,600.00", currency: "USD" },
+  platformFees: { amount: "930.00", currency: "USD" },
+  netPayoutAmount: { amount: "17,670.00", currency: "USD" },
+  breakdownPerCreator: [
+    { creatorId: "cr-1093", creatorName: "Elena Rostova", grossEarned: { amount: "6,800.00", currency: "USD" }, commissionEarned: { amount: "1,360.00", currency: "USD" } },
+    { creatorId: "cr-1092", creatorName: "Alex Rivera", grossEarned: { amount: "4,330.00", currency: "USD" }, commissionEarned: { amount: "866.00", currency: "USD" } },
+    { creatorId: "cr-1095", creatorName: "Sarah Jenkins", grossEarned: { amount: "3,750.00", currency: "USD" }, commissionEarned: { amount: "750.00", currency: "USD" } },
+    { creatorId: "cr-1094", creatorName: "Marcus Chen", grossEarned: { amount: "2,900.00", currency: "USD" }, commissionEarned: { amount: "580.00", currency: "USD" } },
+  ],
+};
+
+export const agencyInvoicesMock: AgencyInvoice[] = [
+  {
+    id: "inv-2026-08",
+    invoiceNumber: "INV-APEX-2026-08",
+    issueDate: "2026-08-31",
+    dueDate: "2026-09-15",
+    amount: { amount: "17,670.00", currency: "USD" },
+    status: "PROCESSING",
+    downloadUrl: "#",
+  },
+  {
+    id: "inv-2026-07",
+    invoiceNumber: "INV-APEX-2026-07",
+    issueDate: "2026-07-31",
+    dueDate: "2026-08-15",
+    amount: { amount: "16,720.00", currency: "USD" },
+    status: "PAID",
+    downloadUrl: "#",
+  },
+  {
+    id: "inv-2026-06",
+    invoiceNumber: "INV-APEX-2026-06",
+    issueDate: "2026-06-30",
+    dueDate: "2026-07-15",
+    amount: { amount: "15,390.00", currency: "USD" },
+    status: "PAID",
+    downloadUrl: "#",
+  },
+];
+
+export const agencyPayoutAccountMock: AgencyPayoutAccount = {
+  bankName: "JPMorgan Chase Bank, N.A.",
+  accountHolderName: "Apex Creator Media LLC",
+  accountNumberMasked: "•••• •••• •••• 9812",
+  swiftBic: "CHASUS33XXX",
+  currency: "USD",
+  payoutSchedule: "MONTHLY_15TH",
+};
+
+export const agencySupportTicketsMock: SupportTicket[] = [
+  {
+    id: "AG-TICK-102",
+    subject: "Bulk Invitation API Access Request",
+    category: "Technical",
+    status: "IN_PROGRESS",
+    priority: "HIGH",
+    createdAt: "2026-08-29",
+    updatedAt: "2026-08-30",
+    messagesCount: 4,
+  },
+  {
+    id: "AG-TICK-088",
+    subject: "Tax Exemption Form 1099 Submission",
+    category: "Compliance",
+    status: "RESOLVED",
+    priority: "MEDIUM",
+    createdAt: "2026-08-10",
+    updatedAt: "2026-08-12",
+    messagesCount: 2,
+  },
+];

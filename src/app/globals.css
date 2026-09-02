@@ -1,0 +1,108 @@
+@import "tailwindcss";
+@import "../styles/tokens.css";
+
+@theme inline {
+  --color-brand: var(--color-brand);
+  --color-brand-hover: var(--color-brand-hover);
+  --color-brand-active: var(--color-brand-active);
+  --color-brand-soft: var(--color-brand-soft);
+  --color-cta: var(--color-cta);
+  --color-cta-hover: var(--color-cta-hover);
+  --color-background: var(--color-background);
+  --color-surface: var(--color-surface);
+  --color-surface-elevated: var(--color-surface-elevated);
+  --color-surface-muted: var(--color-surface-muted);
+  --color-text-primary: var(--color-text-primary);
+  --color-text-secondary: var(--color-text-secondary);
+  --color-text-muted: var(--color-text-muted);
+  --color-text-inverse: var(--color-text-inverse);
+  --color-border: var(--color-border);
+  --color-border-subtle: var(--color-border-subtle);
+  --color-success: var(--color-success);
+  --color-success-soft: var(--color-success-soft);
+  --color-warning: var(--color-warning);
+  --color-warning-soft: var(--color-warning-soft);
+  --color-danger: var(--color-danger);
+  --color-danger-soft: var(--color-danger-soft);
+  --color-info: var(--color-info);
+  --color-info-soft: var(--color-info-soft);
+  --font-sans: var(--font-inter);
+  --shadow-sm: var(--shadow-sm);
+  --shadow-card: var(--shadow-card);
+  --shadow-elevated: var(--shadow-elevated);
+  --shadow-modal: var(--shadow-modal);
+}
+
+
+* {
+  border-color: var(--color-border);
+}
+html {
+  scroll-behavior: smooth;
+}
+body {
+  background: var(--color-background);
+  color: var(--color-text-primary);
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+input,
+select,
+textarea {
+  background: var(--color-surface);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-brand);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 20%, transparent);
+}
+input[type="range"] {
+  accent-color: var(--color-brand);
+}
+::selection {
+  background: var(--color-brand-soft);
+  color: var(--color-text-primary);
+}
+
+/* Compatibility palette for legacy marketing gradients. Kept in CSS so route files
+   remain untouched during the global theme migration. */
+.from-violet-50,
+.via-indigo-50 { --tw-gradient-from: #fff3e0 var(--tw-gradient-from-position) !important; }
+.to-pink-50 { --tw-gradient-to: #ffebe5 var(--tw-gradient-to-position) !important; }
+.from-violet-500,
+.from-violet-600 { --tw-gradient-from: #ff9800 var(--tw-gradient-from-position) !important; }
+.via-indigo-500,
+.via-indigo-600 { --tw-gradient-via: #ff7a00 var(--tw-gradient-via-position) !important; }
+.to-pink-500,
+.to-pink-600 { --tw-gradient-to: #ff3d00 var(--tw-gradient-to-position) !important; }
+.from-violet-700,
+.via-indigo-700 { --tw-gradient-from: #c2410c var(--tw-gradient-from-position) !important; }
+.via-indigo-700 { --tw-gradient-via: #e65100 var(--tw-gradient-via-position) !important; }
+.text-violet-700,
+.text-indigo-700 { color: #c2410c !important; }
+.bg-red-600 { background-color: var(--color-cta) !important; }
+button,
+a,
+input,
+select,
+textarea {
+  outline-offset: 3px;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--color-brand);
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  ::before,
+  ::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+  }
+}

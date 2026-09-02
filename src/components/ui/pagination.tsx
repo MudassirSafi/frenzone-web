@@ -1,0 +1,2 @@
+import { Button } from "./button";
+export function Pagination({ page = 1, totalPages = 1 }: { page?: number; totalPages?: number }) { return <nav className="mt-4 flex items-center justify-between text-sm" aria-label="Pagination"><Button disabled={page <= 1} variant="secondary">Previous</Button><span className="text-text-secondary">Page {page} of {totalPages}</span><Button disabled={page >= totalPages} variant="secondary">Next</Button></nav>; }

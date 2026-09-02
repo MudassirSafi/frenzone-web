@@ -1,0 +1,3 @@
+"use client";
+import { useState } from "react";
+export function Tabs({ items }: { items: Array<{ id: string; label: string; content: React.ReactNode }> }) { const [active, setActive] = useState(items[0]?.id); const current = items.find((item) => item.id === active); return <div><div className="flex gap-1 border-b" role="tablist">{items.map((item) => <button className={`px-3 py-2 text-sm font-medium ${active === item.id ? "border-b-2 border-brand text-brand" : "text-text-secondary"}`} key={item.id} onClick={() => setActive(item.id)} role="tab">{item.label}</button>)}</div><div className="pt-4">{current?.content}</div></div>; }

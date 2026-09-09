@@ -52,11 +52,13 @@ export const authService = {
   },
 
   login: async (input: LoginInput): Promise<AuthResponse> => {
+    const normalizedEmail = input.email.trim().toLowerCase();
+
+    // Strategy 1: Attempt Firebase Authentication
     try {
-      // 1. Authenticate against Firebase Authentication
       const credential = await signInWithEmailAndPassword(
         auth,
-        input.email.trim().toLowerCase(),
+        normalizedEmail,
         input.password
       );
       const token = await credential.user.getIdToken();
@@ -66,7 +68,18 @@ export const authService = {
         localStorage.setItem("token", token);
       }
 
-      // 2. Fetch authenticated MongoDB user profile
+      // Ensure MongoDB identity synchronization
+      try {
+        await apiClient.post("/auth/web-signup", {
+          firstname: credential.user.displayName || "User",
+          email: normalizedEmail,
+          idToken: token,
+        });
+      } catch (syncErr) {
+        console.warn("MongoDB sync notice on login:", syncErr);
+      }
+
+      // Fetch authoritative MongoDB user profile
       const session = await authService.getSession();
       if (session.user && typeof window !== "undefined") {
         localStorage.setItem("user", JSON.stringify(session.user));
@@ -77,22 +90,51 @@ export const authService = {
         token,
         user: session.user,
       };
-    } catch (err: any) {
-      console.error("Firebase Login Error:", err);
-      let errorMsg = "Failed to sign in. Please check your credentials.";
-      if (
-        err.code === "auth/invalid-credential" ||
-        err.code === "auth/wrong-password" ||
-        err.code === "auth/user-not-found"
-      ) {
-        errorMsg = "Invalid email or password. Please verify your credentials.";
-      } else if (err.code === "auth/too-many-requests") {
-        errorMsg = "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
-      } else if (err.code === "auth/user-disabled") {
-        errorMsg = "This user account has been disabled.";
-      } else if (err.message) {
-        errorMsg = err.message;
+    } catch (fbErr: any) {
+      console.warn("Firebase authentication bypassed/failed, falling back to authoritative backend database:", fbErr.code || fbErr.message);
+
+      // Strategy 2: Authoritative Backend Database Authentication (MongoDB bcrypt)
+      try {
+        const backendRes = await apiClient.post<{ user: any; token: string }>("/auth/login", {
+          email: normalizedEmail,
+          password: input.password,
+        });
+
+        if (backendRes?.token) {
+          if (typeof window !== "undefined") {
+            localStorage.setItem("frenzone_token", backendRes.token);
+            localStorage.setItem("token", backendRes.token);
+            if (backendRes.user) {
+              localStorage.setItem("user", JSON.stringify(backendRes.user));
+            }
+          }
+
+          const session = await authService.getSession();
+          return {
+            success: true,
+            token: backendRes.token,
+            user: session.user || backendRes.user,
+          };
+        }
+      } catch (backendErr: any) {
+        console.error("Backend database login error:", backendErr);
+        const msg = backendErr?.message || "";
+        if (msg.toLowerCase().includes("banned")) {
+          return {
+            success: false,
+            error: "This user account has been disabled.",
+          };
+        }
       }
+
+      // If both authentication strategies fail, provide clean actionable error
+      let errorMsg = "Invalid email or password. Please verify your credentials.";
+      if (fbErr.code === "auth/too-many-requests") {
+        errorMsg = "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
+      } else if (fbErr.code === "auth/user-disabled") {
+        errorMsg = "This user account has been disabled.";
+      }
+
       return {
         success: false,
         error: errorMsg,

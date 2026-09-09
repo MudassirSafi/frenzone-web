@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { LogIn, Eye, EyeOff, ShieldCheck, Video, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GoogleIcon } from "@/components/ui/google-icon";
 import { authService } from "@/features/auth/services/auth.service";
 
 export function LoginForm() {
@@ -14,6 +15,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [targetPortal, setTargetPortal] = useState<"CREATOR" | "AGENCY">("CREATOR");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>();
 
   useEffect(() => {
@@ -25,6 +27,50 @@ export function LoginForm() {
       }
     }
   }, []);
+
+  const handlePortalRedirect = (user: any) => {
+    if (targetPortal === "AGENCY") {
+      if (user.isAgencyMember || user.role?.startsWith("AGENCY_")) {
+        router.push("/agency");
+      } else {
+        // User intended to log in to Agency portal but hasn't created their agency yet.
+        // Seamlessly route to Agency Onboarding to complete agency profile.
+        router.push("/agency-apply");
+      }
+    } else {
+      // Target is CREATOR
+      if (user.isAgencyMember && !user.isCreator && user.creatorStatus !== "approved") {
+        setErrorMsg("Access denied. Your account is registered strictly as an Agency. Please select the Agency Portal.");
+        return;
+      }
+      if (user.isCreator || user.creatorStatus === "approved" || user.creatorStatus === "pending") {
+        router.push("/creator");
+      } else {
+        // Standard registered user: route to Creator apply page to initiate onboarding
+        router.push("/creator-apply");
+      }
+    }
+  };
+
+  const handleGoogleSignIn = async () => {
+    setIsGoogleSubmitting(true);
+    setErrorMsg(undefined);
+
+    try {
+      const res = await authService.loginWithGoogle(targetPortal);
+      if (res.error) {
+        setErrorMsg(res.error);
+        return;
+      }
+
+      const session = await authService.getSession();
+      handlePortalRedirect(session.user);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Google sign-in failed. Please try again.");
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -45,29 +91,7 @@ export function LoginForm() {
 
       // Authoritative Role Resolution from backend session
       const session = await authService.getSession();
-      const user = session.user;
-
-      if (targetPortal === "AGENCY") {
-        if (user.isAgencyMember || user.role?.startsWith("AGENCY_")) {
-          router.push("/agency");
-        } else {
-          // User intended to log in to Agency portal but hasn't created their agency yet.
-          // Seamlessly route to Agency Onboarding to complete agency profile.
-          router.push("/agency-apply");
-        }
-      } else {
-        // Target is CREATOR
-        if (user.isAgencyMember && !user.isCreator && user.creatorStatus !== "approved") {
-          setErrorMsg("Access denied. Your account is registered strictly as an Agency. Please select the Agency Portal.");
-          return;
-        }
-        if (user.isCreator || user.creatorStatus === "approved" || user.creatorStatus === "pending") {
-          router.push("/creator");
-        } else {
-          // Standard registered user: route to Creator apply page to initiate onboarding
-          router.push("/creator-apply");
-        }
-      }
+      handlePortalRedirect(session.user);
     } catch (err: any) {
       setErrorMsg(err.message || "Invalid credentials. Please check your email and password.");
     } finally {
@@ -81,11 +105,11 @@ export function LoginForm() {
       <div className="rounded-xl border border-brand/20 bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 p-3.5 flex items-center space-x-3">
         <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
         <p className="text-xs font-semibold text-text-secondary">
-          Enter your registered Frenzone email and password to authenticate securely via Firebase Authentication.
+          Authenticate securely using Google or your registered Frenzone credentials.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-4">
         {errorMsg ? (
           <div className="rounded-lg bg-red-50 p-3.5 border border-red-200 text-xs text-danger font-semibold">
             {errorMsg}
@@ -124,7 +148,31 @@ export function LoginForm() {
           </div>
         </div>
 
-        <div>
+        {/* Google Authentication Button */}
+        <button
+          type="button"
+          onClick={handleGoogleSignIn}
+          disabled={isGoogleSubmitting || isSubmitting}
+          className="w-full flex items-center justify-center space-x-2.5 py-2.5 px-4 rounded-xl border border-border bg-surface hover:bg-surface-muted active:scale-[0.99] text-sm font-semibold text-text-primary transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {isGoogleSubmitting ? (
+            <div className="h-4 w-4 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+          ) : (
+            <GoogleIcon className="h-4 w-4 shrink-0" />
+          )}
+          <span>{isGoogleSubmitting ? "Signing in with Google..." : "Continue with Google"}</span>
+        </button>
+
+        {/* Divider */}
+        <div className="relative flex items-center justify-center my-2">
+          <div className="border-t border-border w-full" />
+          <span className="bg-surface px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted absolute">
+            Or continue with email
+          </span>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div>
           <label className="text-xs font-semibold text-text-secondary">Email Address</label>
           <input
             type="email"
@@ -179,6 +227,7 @@ export function LoginForm() {
           </p>
         </div>
       </form>
+      </div>
     </div>
   );
 }

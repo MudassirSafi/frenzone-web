@@ -2,8 +2,9 @@ import {
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
+  signInWithPopup,
 } from "firebase/auth";
-import { auth } from "@/lib/firebase/config";
+import { auth, googleProvider } from "@/lib/firebase/config";
 import { apiClient } from "@/lib/api/client";
 import type { Session } from "@/types/auth";
 
@@ -89,6 +90,78 @@ export const authService = {
         errorMsg = "Access to this account has been temporarily disabled due to many failed login attempts. Please try again later.";
       } else if (err.code === "auth/user-disabled") {
         errorMsg = "This user account has been disabled.";
+      } else if (err.message) {
+        errorMsg = err.message;
+      }
+      return {
+        success: false,
+        error: errorMsg,
+      };
+    }
+  },
+
+  loginWithGoogle: async (
+    targetPortal?: "CREATOR" | "AGENCY",
+    agencyName?: string,
+    referralCode?: string
+  ): Promise<AuthResponse> => {
+    try {
+      // 1. Trigger Firebase Google Authentication Popup
+      const credential = await signInWithPopup(auth, googleProvider);
+      const firebaseUser = credential.user;
+      const token = await firebaseUser.getIdToken();
+
+      if (typeof window !== "undefined") {
+        localStorage.setItem("frenzone_token", token);
+        localStorage.setItem("token", token);
+      }
+
+      // 2. Parse display name for backend user creation / sync
+      const fullName = (firebaseUser.displayName || "").trim();
+      let firstname = "";
+      let lastname = "";
+      if (fullName) {
+        const parts = fullName.split(/\s+/);
+        firstname = parts[0] || "";
+        lastname = parts.slice(1).join(" ") || "";
+      }
+      if (!firstname) {
+        firstname = (firebaseUser.email || "user").split("@")[0] || "User";
+      }
+
+      // 3. Synchronize identity with backend MongoDB
+      const res = await apiClient.post<AuthResponse>("/auth/web-signup", {
+        firstname,
+        lastname,
+        email: firebaseUser.email,
+        idToken: token,
+        accountType: targetPortal,
+        agencyName: targetPortal === "AGENCY" ? agencyName : undefined,
+        referralCode: referralCode || undefined,
+      });
+
+      // 4. Resolve authoritative backend session profile
+      const session = await authService.getSession();
+      if (session.user && typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(session.user));
+      }
+
+      return {
+        success: true,
+        token,
+        user: session.user || res.user,
+      };
+    } catch (err: any) {
+      console.error("Firebase Google Auth Error:", err);
+      let errorMsg = "Google Sign-In failed. Please try again.";
+      if (err.code === "auth/popup-closed-by-user") {
+        errorMsg = "Sign-in popup was closed before completing authentication.";
+      } else if (err.code === "auth/popup-blocked") {
+        errorMsg = "Sign-in popup was blocked by your browser. Please allow popups for this site.";
+      } else if (err.code === "auth/cancelled-popup-request") {
+        errorMsg = "Multiple popup requests were initiated. Please try again.";
+      } else if (err.code === "auth/account-exists-with-different-credential") {
+        errorMsg = "An account already exists with the same email address using another login provider.";
       } else if (err.message) {
         errorMsg = err.message;
       }

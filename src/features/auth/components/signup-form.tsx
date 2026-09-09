@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 import { UserPlus, Eye, EyeOff, CheckCircle2, Gift, Video, Building2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { GoogleIcon } from "@/components/ui/google-icon";
 import { authService, type SignupInput } from "@/features/auth/services/auth.service";
 
 export function SignupForm() {
@@ -21,6 +22,7 @@ export function SignupForm() {
   });
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState<string>();
   const [successMsg, setSuccessMsg] = useState<string>();
 
@@ -37,6 +39,43 @@ export function SignupForm() {
       }
     }
   }, []);
+
+  const handleGoogleSignUp = async () => {
+    if (accountType === "AGENCY" && !agencyName.trim()) {
+      setErrorMsg("Please enter your agency or company name before signing up with Google.");
+      return;
+    }
+    setIsGoogleSubmitting(true);
+    setErrorMsg(undefined);
+    setSuccessMsg(undefined);
+
+    try {
+      const res = await authService.loginWithGoogle(
+        accountType,
+        accountType === "AGENCY" ? agencyName.trim() : undefined,
+        formData.referralCode
+      );
+
+      if (res.error) {
+        setErrorMsg(res.error);
+        return;
+      }
+
+      setSuccessMsg(
+        accountType === "AGENCY"
+          ? "Agency account registered successfully! Redirecting to Agency Portal..."
+          : "Account registered successfully! Redirecting to workspace..."
+      );
+
+      setTimeout(() => {
+        router.push(accountType === "AGENCY" ? "/agency" : "/creator");
+      }, 1000);
+    } catch (err: any) {
+      setErrorMsg(err.message || "Google registration failed. Please try again.");
+    } finally {
+      setIsGoogleSubmitting(false);
+    }
+  };
 
   const handleChange = (field: keyof SignupInput, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -154,6 +193,29 @@ export function SignupForm() {
           <span className="text-[10px] bg-brand text-white px-2 py-0.5 rounded-full font-bold">10% BONUS</span>
         </div>
       ) : null}
+
+      {/* Google Authentication Button */}
+      <button
+        type="button"
+        onClick={handleGoogleSignUp}
+        disabled={isGoogleSubmitting || isSubmitting}
+        className="w-full flex items-center justify-center space-x-2.5 py-2.5 px-4 rounded-xl border border-border bg-surface hover:bg-surface-muted active:scale-[0.99] text-sm font-semibold text-text-primary transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGoogleSubmitting ? (
+          <div className="h-4 w-4 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <GoogleIcon className="h-4 w-4 shrink-0" />
+        )}
+        <span>{isGoogleSubmitting ? "Connecting Google Account..." : "Sign up with Google"}</span>
+      </button>
+
+      {/* Divider */}
+      <div className="relative flex items-center justify-center my-2">
+        <div className="border-t border-border w-full" />
+        <span className="bg-surface px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted absolute">
+          Or register with email
+        </span>
+      </div>
 
       <div className="grid grid-cols-2 gap-3">
         <div>

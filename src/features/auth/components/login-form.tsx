@@ -124,140 +124,88 @@ export function LoginForm() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Demo Impersonation Quick-Switch Bar */}
-      <div className="rounded-2xl border border-brand/20 bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 p-4 space-y-3 shadow-sm">
-        <div className="flex items-center space-x-2 text-xs font-bold text-brand uppercase tracking-wider">
-          <Zap className="h-4 w-4 text-brand fill-brand shrink-0" />
-          <span>Demo Impersonation Quick-Switch</span>
-        </div>
-        <p className="text-xs text-text-secondary leading-relaxed">
-          Instantly test fully authenticated production workspaces with real database records in 1 click:
-        </p>
-
-        <div className="grid grid-cols-2 gap-2 pt-0.5">
-          <button
-            type="button"
-            onClick={() => handleDemoQuickSwitch("CREATOR")}
-            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
-            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-brand hover:text-brand transition-all cursor-pointer shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isDemoSubmitting === "CREATOR" ? (
-              <div className="h-3.5 w-3.5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Video className="h-4 w-4 text-brand shrink-0" />
-            )}
-            <span>{isDemoSubmitting === "CREATOR" ? "Signing In..." : "Creator Hub"}</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => handleDemoQuickSwitch("AGENCY")}
-            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
-            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-brand hover:text-brand transition-all cursor-pointer shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
-          >
-            {isDemoSubmitting === "AGENCY" ? (
-              <div className="h-3.5 w-3.5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-            ) : (
-              <Building2 className="h-4 w-4 text-brand shrink-0" />
-            )}
-            <span>{isDemoSubmitting === "AGENCY" ? "Signing In..." : "Agency Portal"}</span>
-          </button>
-        </div>
+    <div className="space-y-5">
+      {/* Workspace Type Selector */}
+      <div className="grid grid-cols-2 p-1 bg-surface-muted rounded-xl border border-border">
+        <button
+          type="button"
+          onClick={() => setTargetPortal("CREATOR")}
+          className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            targetPortal === "CREATOR"
+              ? "bg-surface text-text-primary shadow-xs font-bold"
+              : "text-text-muted hover:text-text-primary"
+          }`}
+        >
+          <Video className="h-3.5 w-3.5 text-brand" />
+          <span>Creator</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setTargetPortal("AGENCY")}
+          className={`py-2 text-xs font-semibold rounded-lg transition-all flex items-center justify-center gap-1.5 cursor-pointer ${
+            targetPortal === "AGENCY"
+              ? "bg-surface text-text-primary shadow-xs font-bold"
+              : "text-text-muted hover:text-text-primary"
+          }`}
+        >
+          <Building2 className="h-3.5 w-3.5 text-brand" />
+          <span>Agency</span>
+        </button>
       </div>
 
-      <div className="relative flex items-center justify-center my-1">
+      {errorMsg ? (
+        <div className="rounded-lg bg-red-50 p-3 border border-red-200 text-xs text-danger font-medium">
+          {errorMsg}
+        </div>
+      ) : null}
+
+      {/* Google Sign-In */}
+      <button
+        type="button"
+        onClick={handleGoogleSignIn}
+        disabled={isGoogleSubmitting || isSubmitting}
+        className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl border border-border bg-surface hover:bg-surface-muted active:scale-[0.99] text-xs font-semibold text-text-primary transition-all shadow-xs hover:shadow-sm cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+      >
+        {isGoogleSubmitting ? (
+          <div className="h-4 w-4 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+        ) : (
+          <GoogleIcon className="h-4 w-4 shrink-0" />
+        )}
+        <span>{isGoogleSubmitting ? "Connecting..." : "Continue with Google"}</span>
+      </button>
+
+      {/* Divider */}
+      <div className="relative flex items-center justify-center">
         <div className="border-t border-border w-full" />
-        <span className="bg-surface px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted absolute">
-          Or sign in manually
+        <span className="bg-surface px-2.5 text-[11px] font-medium text-text-muted absolute">
+          or
         </span>
       </div>
 
-      <div className="space-y-4">
-        {errorMsg ? (
-          <div className="rounded-lg bg-red-50 p-3.5 border border-red-200 text-xs text-danger font-semibold">
-            {errorMsg}
-          </div>
-        ) : null}
-
+      {/* Email / Password Form */}
+      <form onSubmit={handleSubmit} className="space-y-3.5">
         <div>
-          <label className="text-xs font-semibold text-text-secondary block mb-1.5">
-            Select Destination Workspace
-          </label>
-          <div className="grid grid-cols-2 gap-2 p-1 bg-surface-muted rounded-xl border border-border">
-            <button
-              type="button"
-              onClick={() => setTargetPortal("CREATOR")}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-                targetPortal === "CREATOR"
-                  ? "bg-brand text-white shadow-sm"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              <Video className="h-3.5 w-3.5" />
-              <span>Creator Portal</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTargetPortal("AGENCY")}
-              className={`py-2 px-3 rounded-lg text-xs font-bold transition-all flex items-center justify-center space-x-1.5 cursor-pointer ${
-                targetPortal === "AGENCY"
-                  ? "bg-brand text-white shadow-sm"
-                  : "text-text-secondary hover:text-text-primary"
-              }`}
-            >
-              <Building2 className="h-3.5 w-3.5" />
-              <span>Agency Portal</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Google Authentication Button */}
-        <button
-          type="button"
-          onClick={handleGoogleSignIn}
-          disabled={isGoogleSubmitting || isSubmitting}
-          className="w-full flex items-center justify-center space-x-2.5 py-2.5 px-4 rounded-xl border border-border bg-surface hover:bg-surface-muted active:scale-[0.99] text-sm font-semibold text-text-primary transition-all shadow-sm hover:shadow cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-        >
-          {isGoogleSubmitting ? (
-            <div className="h-4 w-4 border-2 border-brand border-t-transparent rounded-full animate-spin" />
-          ) : (
-            <GoogleIcon className="h-4 w-4 shrink-0" />
-          )}
-          <span>{isGoogleSubmitting ? "Signing in with Google..." : "Continue with Google"}</span>
-        </button>
-
-        {/* Divider */}
-        <div className="relative flex items-center justify-center my-2">
-          <div className="border-t border-border w-full" />
-          <span className="bg-surface px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted absolute">
-            Or continue with email
-          </span>
-        </div>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-          <label className="text-xs font-semibold text-text-secondary">Email Address</label>
+          <label className="text-xs font-medium text-text-secondary block mb-1">Email</label>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            className="w-full mt-1 rounded-lg border border-border bg-surface px-3.5 py-2 text-sm text-text-primary outline-none focus:border-brand"
-            placeholder="your.email@example.com"
+            className="w-full rounded-lg border border-border bg-surface px-3.5 py-2 text-xs text-text-primary outline-none focus:border-brand transition-colors"
+            placeholder="name@example.com"
           />
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-text-secondary">Password</label>
-          <div className="relative mt-1 flex items-center">
+          <label className="text-xs font-medium text-text-secondary block mb-1">Password</label>
+          <div className="relative flex items-center">
             <input
               type={showPassword ? "text" : "password"}
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-border bg-surface px-3.5 py-2 pr-10 text-sm text-text-primary outline-none focus:border-brand"
-              placeholder="Enter your password"
+              className="w-full rounded-lg border border-border bg-surface px-3.5 py-2 pr-10 text-xs text-text-primary outline-none focus:border-brand transition-colors"
+              placeholder="••••••••"
             />
             <button
               type="button"
@@ -266,31 +214,64 @@ export function LoginForm() {
                 e.stopPropagation();
                 setShowPassword((prev) => !prev);
               }}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors cursor-pointer p-1.5 z-10 flex items-center justify-center"
+              className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text-primary transition-colors cursor-pointer p-1"
               aria-label={showPassword ? "Hide password" : "Show password"}
             >
               {showPassword ? (
-                <EyeOff className="h-4 w-4 text-brand" />
+                <EyeOff className="h-3.5 w-3.5 text-brand" />
               ) : (
-                <Eye className="h-4 w-4 text-text-muted hover:text-text-primary" />
+                <Eye className="h-3.5 w-3.5" />
               )}
             </button>
           </div>
         </div>
 
-        <Button type="submit" variant="primary" className="w-full" isLoading={isSubmitting} icon={<LogIn className="h-4 w-4" />}>
-          Sign In to Workspace
+        <Button
+          type="submit"
+          variant="primary"
+          className="w-full text-xs"
+          isLoading={isSubmitting}
+          icon={<LogIn className="h-3.5 w-3.5" />}
+        >
+          Sign in
         </Button>
-
-        <div className="text-center pt-2">
-          <p className="text-xs text-text-muted">
-            Don't have an account yet?{" "}
-            <Link href="/signup" className="text-brand font-bold hover:underline">
-              Create a Frenzone Account
-            </Link>
-          </p>
-        </div>
       </form>
+
+      {/* Compact Demo Quick-Switch */}
+      <div className="pt-3 border-t border-border">
+        <div className="flex items-center justify-between gap-2">
+          <span className="flex items-center gap-1 text-[11px] font-medium text-text-secondary">
+            <Zap className="h-3 w-3 text-brand" />
+            Quick demo:
+          </span>
+          <div className="flex items-center gap-1.5">
+            <button
+              type="button"
+              onClick={() => handleDemoQuickSwitch("CREATOR")}
+              disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+              className="px-2.5 py-1 rounded-md bg-surface-muted hover:bg-brand-soft/60 text-[11px] font-medium text-text-primary hover:text-brand border border-border transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {isDemoSubmitting === "CREATOR" ? "Loading..." : "Creator"}
+            </button>
+            <button
+              type="button"
+              onClick={() => handleDemoQuickSwitch("AGENCY")}
+              disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+              className="px-2.5 py-1 rounded-md bg-surface-muted hover:bg-brand-soft/60 text-[11px] font-medium text-text-primary hover:text-brand border border-border transition-colors cursor-pointer disabled:opacity-50"
+            >
+              {isDemoSubmitting === "AGENCY" ? "Loading..." : "Agency"}
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="text-center">
+        <p className="text-xs text-text-muted">
+          Don&apos;t have an account?{" "}
+          <Link href="/signup" className="text-brand font-semibold hover:underline">
+            Sign up
+          </Link>
+        </p>
       </div>
     </div>
   );

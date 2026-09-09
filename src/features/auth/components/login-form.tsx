@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
-import { LogIn, Eye, EyeOff, ShieldCheck, Video, Building2 } from "lucide-react";
+import { LogIn, Eye, EyeOff, ShieldCheck, Video, Building2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { GoogleIcon } from "@/components/ui/google-icon";
 import { authService } from "@/features/auth/services/auth.service";
@@ -16,7 +16,31 @@ export function LoginForm() {
   const [targetPortal, setTargetPortal] = useState<"CREATOR" | "AGENCY">("CREATOR");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isGoogleSubmitting, setIsGoogleSubmitting] = useState(false);
+  const [isDemoSubmitting, setIsDemoSubmitting] = useState<"CREATOR" | "AGENCY" | null>(null);
   const [errorMsg, setErrorMsg] = useState<string>();
+
+  const handleDemoQuickSwitch = async (role: "CREATOR" | "AGENCY") => {
+    setIsDemoSubmitting(role);
+    setErrorMsg(undefined);
+
+    try {
+      const res = await authService.loginDemo(role);
+      if (res.error) {
+        setErrorMsg(res.error);
+        return;
+      }
+
+      if (role === "CREATOR") {
+        router.push("/creator");
+      } else {
+        router.push("/agency");
+      }
+    } catch (err: any) {
+      setErrorMsg(err.message || "Failed to initialize demo session.");
+    } finally {
+      setIsDemoSubmitting(null);
+    }
+  };
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -101,12 +125,52 @@ export function LoginForm() {
 
   return (
     <div className="space-y-6">
-      {/* Real API Security Notice */}
-      <div className="rounded-xl border border-brand/20 bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 p-3.5 flex items-center space-x-3">
-        <ShieldCheck className="h-5 w-5 text-brand shrink-0" />
-        <p className="text-xs font-semibold text-text-secondary">
-          Authenticate securely using Google or your registered Frenzone credentials.
+      {/* Demo Impersonation Quick-Switch Bar */}
+      <div className="rounded-2xl border border-brand/20 bg-gradient-to-r from-violet-50 via-indigo-50 to-pink-50 p-4 space-y-3 shadow-sm">
+        <div className="flex items-center space-x-2 text-xs font-bold text-brand uppercase tracking-wider">
+          <Zap className="h-4 w-4 text-brand fill-brand shrink-0" />
+          <span>Demo Impersonation Quick-Switch</span>
+        </div>
+        <p className="text-xs text-text-secondary leading-relaxed">
+          Instantly test fully authenticated production workspaces with real database records in 1 click:
         </p>
+
+        <div className="grid grid-cols-2 gap-2 pt-0.5">
+          <button
+            type="button"
+            onClick={() => handleDemoQuickSwitch("CREATOR")}
+            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-brand hover:text-brand transition-all cursor-pointer shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isDemoSubmitting === "CREATOR" ? (
+              <div className="h-3.5 w-3.5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Video className="h-4 w-4 text-brand shrink-0" />
+            )}
+            <span>{isDemoSubmitting === "CREATOR" ? "Signing In..." : "Creator Hub"}</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDemoQuickSwitch("AGENCY")}
+            disabled={isDemoSubmitting !== null || isSubmitting || isGoogleSubmitting}
+            className="flex items-center justify-center space-x-2 py-2.5 px-3 rounded-xl bg-surface border border-border text-xs font-bold text-text-primary hover:border-brand hover:text-brand transition-all cursor-pointer shadow-sm hover:shadow active:scale-[0.99] disabled:opacity-60 disabled:cursor-not-allowed"
+          >
+            {isDemoSubmitting === "AGENCY" ? (
+              <div className="h-3.5 w-3.5 border-2 border-brand border-t-transparent rounded-full animate-spin" />
+            ) : (
+              <Building2 className="h-4 w-4 text-brand shrink-0" />
+            )}
+            <span>{isDemoSubmitting === "AGENCY" ? "Signing In..." : "Agency Portal"}</span>
+          </button>
+        </div>
+      </div>
+
+      <div className="relative flex items-center justify-center my-1">
+        <div className="border-t border-border w-full" />
+        <span className="bg-surface px-3 text-[11px] font-semibold uppercase tracking-wider text-text-muted absolute">
+          Or sign in manually
+        </span>
       </div>
 
       <div className="space-y-4">

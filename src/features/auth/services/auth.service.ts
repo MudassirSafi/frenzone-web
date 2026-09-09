@@ -232,5 +232,30 @@ export const authService = {
     await apiClient.post("/auth/logout").catch(() => {});
   },
 
+  loginDemo: async (role: "CREATOR" | "AGENCY"): Promise<AuthResponse> => {
+    try {
+      const res = await apiClient.post<AuthResponse>("/auth/demo-login", { role });
+      if (res.token && typeof window !== "undefined") {
+        localStorage.setItem("frenzone_token", res.token);
+        localStorage.setItem("token", res.token);
+      }
+      const session = await authService.getSession();
+      if (session.user && typeof window !== "undefined") {
+        localStorage.setItem("user", JSON.stringify(session.user));
+      }
+      return {
+        success: true,
+        token: res.token,
+        user: session.user || res.user,
+      };
+    } catch (err: any) {
+      console.error("Demo login error:", err);
+      return {
+        success: false,
+        error: err.message || "Failed to initialize demo session.",
+      };
+    }
+  },
+
   refreshSession: () => apiClient.post<Session>("/auth/refresh"),
 };

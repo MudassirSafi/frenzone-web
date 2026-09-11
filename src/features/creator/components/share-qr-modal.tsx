@@ -5,6 +5,7 @@ import { Copy, Check, Download, Share2, X, AlertCircle, RefreshCw, Sparkles, Shi
 import QRCode from "qrcode";
 import { Button } from "@/components/ui/button";
 import { referralService, type ReferralCodeResponse } from "@/features/referrals/services/referral.service";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 
 interface ShareQrModalProps {
   isOpen: boolean;
@@ -33,18 +34,24 @@ export function ShareQrModal({
     try {
       const res = await referralService.getCode();
       if (res.success && res.referralCode) {
-        setData(res);
+        const canonicalUrl = getCanonicalReferralUrl(res.referralCode, res.referralUrl || res.referralLink);
+        setData({
+          ...res,
+          referralUrl: canonicalUrl,
+          referralLink: canonicalUrl,
+        });
       } else {
         throw new Error("Unable to retrieve referral code from server.");
       }
     } catch (err: any) {
       if (initialCode) {
         // Fallback to initial props if network transient
+        const canonicalUrl = getCanonicalReferralUrl(initialCode, initialLink);
         setData({
           success: true,
           referralCode: initialCode,
-          referralUrl: initialLink || `${typeof window !== "undefined" ? window.location.origin : "https://frenzone.live"}/signup?ref=${encodeURIComponent(initialCode)}`,
-          referralLink: initialLink || `${typeof window !== "undefined" ? window.location.origin : "https://frenzone.live"}/signup?ref=${encodeURIComponent(initialCode)}`,
+          referralUrl: canonicalUrl,
+          referralLink: canonicalUrl,
         });
       } else {
         setError(err.message || "Failed to load referral details. Please try again.");
@@ -56,14 +63,15 @@ export function ShareQrModal({
 
   useEffect(() => {
     if (isOpen) {
-      if (!initialCode || !initialLink) {
+      if (!initialCode) {
         fetchReferralData();
       } else {
+        const canonicalUrl = getCanonicalReferralUrl(initialCode, initialLink);
         setData({
           success: true,
           referralCode: initialCode,
-          referralUrl: initialLink,
-          referralLink: initialLink,
+          referralUrl: canonicalUrl,
+          referralLink: canonicalUrl,
         });
         setIsLoading(false);
       }
@@ -73,12 +81,11 @@ export function ShareQrModal({
     }
   }, [isOpen, initialCode, initialLink]);
 
-  // Render QR Code to HTML5 Canvas whenever canonical URL is ready
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://frenzone.live";
-  const activeUrl =
-    data?.referralUrl ||
-    data?.referralLink ||
-    (data?.referralCode ? `${origin}/signup?ref=${encodeURIComponent(data.referralCode)}` : "");
+  // Guaranteed canonical environment-aware URL used identically by both Copy Link and QR Code
+  const activeUrl = getCanonicalReferralUrl(
+    data?.referralCode || initialCode,
+    data?.referralUrl || data?.referralLink || initialLink
+  );
 
   useEffect(() => {
     if (isOpen && activeUrl && canvasRef.current) {

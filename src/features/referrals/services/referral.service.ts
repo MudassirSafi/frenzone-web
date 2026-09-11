@@ -1,4 +1,5 @@
 import { apiClient } from "@/lib/api/client";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 
 export type ReferralCodeResponse = {
   success: boolean;
@@ -45,7 +46,16 @@ export type TrackScanResponse = {
 
 export const referralService = {
   async getCode(): Promise<ReferralCodeResponse> {
-    return apiClient.get<ReferralCodeResponse>("/referral/code");
+    const res = await apiClient.get<ReferralCodeResponse>("/referral/code");
+    if (res && res.referralCode) {
+      const canonicalUrl = getCanonicalReferralUrl(res.referralCode, res.referralUrl || res.referralLink);
+      return {
+        ...res,
+        referralUrl: canonicalUrl,
+        referralLink: canonicalUrl,
+      };
+    }
+    return res;
   },
 
   async getStats(): Promise<ReferralStatsResponse> {
@@ -64,10 +74,10 @@ export const referralService = {
   },
 
   async getContext(referralCode: string) {
-    const origin = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || "https://frenzone.live");
+    const canonicalUrl = getCanonicalReferralUrl(referralCode);
     return {
       code: referralCode,
-      shareUrl: `${origin}/signup?ref=${encodeURIComponent(referralCode)}`,
+      shareUrl: canonicalUrl,
     };
   },
 

@@ -12,6 +12,7 @@ import { referralService } from "@/features/referrals/services/referral.service"
 import { useAsyncData } from "@/lib/hooks/use-async-data";
 import { formatCurrency } from "@/lib/formatting";
 import { ShareQrModal } from "@/features/creator/components/share-qr-modal";
+import { getCanonicalReferralUrl } from "@/lib/referral/referral-url";
 import type { CreatorReferralItem } from "@/types/creator";
 
 export default function CreatorReferralsPage() {
@@ -38,8 +39,7 @@ export default function CreatorReferralsPage() {
 
   const dataList = referrals || [];
   const code = liveCodeData?.referralCode || "";
-  const origin = typeof window !== "undefined" ? window.location.origin : "https://frenzone.live";
-  const link = liveCodeData?.referralLink || (code ? `${origin}/signup?ref=${encodeURIComponent(code)}` : "");
+  const link = getCanonicalReferralUrl(code, liveCodeData?.referralLink || liveCodeData?.referralUrl);
 
   const handleCopy = () => {
     if (!link) return;

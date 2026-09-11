@@ -38,7 +38,8 @@ export default function CreatorReferralsPage() {
 
   const dataList = referrals || [];
   const code = liveCodeData?.referralCode || "";
-  const link = liveCodeData?.referralLink || (code ? `https://frenzone.live/join/${code}` : "");
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://frenzone.live";
+  const link = liveCodeData?.referralLink || (code ? `${origin}/signup?ref=${encodeURIComponent(code)}` : "");
 
   const handleCopy = () => {
     if (!link) return;

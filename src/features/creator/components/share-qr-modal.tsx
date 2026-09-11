@@ -43,8 +43,8 @@ export function ShareQrModal({
         setData({
           success: true,
           referralCode: initialCode,
-          referralUrl: initialLink || `https://frenzone.live/join/${initialCode}`,
-          referralLink: initialLink || `https://frenzone.live/join/${initialCode}`,
+          referralUrl: initialLink || `${typeof window !== "undefined" ? window.location.origin : "https://frenzone.live"}/signup?ref=${encodeURIComponent(initialCode)}`,
+          referralLink: initialLink || `${typeof window !== "undefined" ? window.location.origin : "https://frenzone.live"}/signup?ref=${encodeURIComponent(initialCode)}`,
         });
       } else {
         setError(err.message || "Failed to load referral details. Please try again.");
@@ -74,7 +74,11 @@ export function ShareQrModal({
   }, [isOpen, initialCode, initialLink]);
 
   // Render QR Code to HTML5 Canvas whenever canonical URL is ready
-  const activeUrl = data?.referralUrl || data?.referralLink || (data?.referralCode ? `https://frenzone.live/join/${data.referralCode}` : "");
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://frenzone.live";
+  const activeUrl =
+    data?.referralUrl ||
+    data?.referralLink ||
+    (data?.referralCode ? `${origin}/signup?ref=${encodeURIComponent(data.referralCode)}` : "");
 
   useEffect(() => {
     if (isOpen && activeUrl && canvasRef.current) {

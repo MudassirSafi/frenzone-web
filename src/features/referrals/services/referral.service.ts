@@ -64,9 +64,10 @@ export const referralService = {
   },
 
   async getContext(referralCode: string) {
+    const origin = typeof window !== "undefined" ? window.location.origin : (process.env.NEXT_PUBLIC_APP_URL || "https://frenzone.live");
     return {
       code: referralCode,
-      shareUrl: `https://frenzone.live/join/${referralCode}`,
+      shareUrl: `${origin}/signup?ref=${encodeURIComponent(referralCode)}`,
     };
   },
 

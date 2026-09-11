@@ -2,8 +2,14 @@ import { apiClient } from "@/lib/api/client";
 
 export type ReferralCodeResponse = {
   success: boolean;
+  creatorId?: string;
   referralCode: string;
+  referralUrl: string;
   referralLink: string;
+  displayName?: string;
+  username?: string;
+  avatarUrl?: string;
+  trackingEnabled?: boolean;
 };
 
 export type ReferralStatsResponse = {
@@ -11,6 +17,7 @@ export type ReferralStatsResponse = {
   stats: {
     totalReferred: number;
     qualifiedCount: number;
+    totalScans?: number;
     conversionRate: string;
     totalReferralEarningsUSD?: string;
     referralTier?: string;
@@ -23,6 +30,19 @@ export type ReferralStatsResponse = {
   recentReferrals: any[];
 };
 
+export type TrackScanResponse = {
+  success: boolean;
+  valid: boolean;
+  referralCode: string;
+  creator?: {
+    id: string;
+    name: string;
+    username: string;
+  };
+  recorded: boolean;
+  isSelfScan?: boolean;
+};
+
 export const referralService = {
   async getCode(): Promise<ReferralCodeResponse> {
     return apiClient.get<ReferralCodeResponse>("/referral/code");
@@ -32,6 +52,17 @@ export const referralService = {
     return apiClient.get<ReferralStatsResponse>("/referral/stats");
   },
 
+  async trackScan(referralCode: string): Promise<TrackScanResponse> {
+    try {
+      return await apiClient.post<TrackScanResponse>("/referral/track-scan", {
+        referralCode,
+      });
+    } catch (err) {
+      console.warn("Non-blocking referral scan tracking failure:", err);
+      return { success: false, valid: false, referralCode, recorded: false };
+    }
+  },
+
   async getContext(referralCode: string) {
     return {
       code: referralCode,
@@ -39,7 +70,7 @@ export const referralService = {
     };
   },
 
-  async recordClick(_referralCode: string) {
-    return Promise.resolve();
+  async recordClick(referralCode: string) {
+    return this.trackScan(referralCode);
   },
 };

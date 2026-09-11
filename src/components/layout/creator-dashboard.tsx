@@ -22,6 +22,7 @@ import { ProgressBar } from "@/components/ui/progress-bar";
 import { StatusBadge } from "@/components/feedback/status-badge";
 import { formatCurrency } from "@/lib/formatting";
 import { StatCardSkeleton, CardSkeleton } from "@/components/ui/skeleton";
+import { ShareQrModal } from "@/features/creator/components/share-qr-modal";
 import type { CreatorDashboard } from "@/types/creator";
 
 export function CreatorDashboardView({
@@ -244,23 +245,12 @@ export function CreatorDashboardView({
         </CardContent>
       </Card>
 
-      {/* QR Code Modal Preview */}
-      {showQrModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4 animate-in fade-in">
-          <div className="w-full max-w-sm rounded-2xl bg-surface p-6 shadow-modal border border-border text-center">
-            <h3 className="text-lg font-bold text-text-primary">Your Referral QR Code</h3>
-            <p className="text-xs text-text-secondary mt-1">Scan to open creator signup with code {data.referralCode}</p>
-
-            <div className="my-6 mx-auto flex h-48 w-48 items-center justify-center rounded-xl border-2 border-brand/20 bg-brand-soft/30 p-4">
-              <QrCode className="h-32 w-32 text-brand" />
-            </div>
-
-            <Button variant="primary" className="w-full" onClick={() => setShowQrModal(false)}>
-              Close Preview
-            </Button>
-          </div>
-        </div>
-      )}
+      {/* Share QR Code Production Modal */}
+      <ShareQrModal
+        isOpen={showQrModal}
+        onClose={() => setShowQrModal(false)}
+        initialCode={data?.referralCode}
+      />
 
       {/* Go Live Studio Broadcaster Setup Modal */}
       {showLiveModal && (

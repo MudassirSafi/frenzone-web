@@ -80,7 +80,7 @@ export function ShareQrModal({
     if (isOpen && activeUrl && canvasRef.current) {
       QRCode.toCanvas(canvasRef.current, activeUrl, {
         errorCorrectionLevel: "H",
-        width: 220,
+        width: 200,
         margin: 2,
         color: {
           dark: "#0f172a", // Deep slate for maximum contrast and reliability
@@ -190,133 +190,145 @@ export function ShareQrModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4 animate-in fade-in duration-200"
-      onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
-      }}
+      className="fixed inset-0 z-50 overflow-y-auto bg-black/60 backdrop-blur-sm p-3 sm:p-6 flex min-h-full items-center justify-center animate-in fade-in duration-200"
+      onClick={onClose}
       role="dialog"
       aria-modal="true"
       aria-labelledby="qr-modal-title"
     >
-      <div className="relative w-full max-w-md rounded-2xl bg-surface p-6 sm:p-7 shadow-modal border border-border space-y-5 text-center">
-        {/* Close Button */}
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
-          aria-label="Close modal"
-        >
-          <X className="h-4 w-4" />
-        </button>
+      <div
+        className="relative w-full max-w-md my-auto rounded-2xl bg-surface shadow-2xl border border-border flex flex-col max-h-[calc(100dvh-2rem)] sm:max-h-[calc(100dvh-3.5rem)] text-center overflow-hidden animate-in zoom-in-95 duration-150"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {/* Modal Header (Pinned) */}
+        <div className="relative px-5 sm:px-6 pt-5 pb-3 border-b border-border/50 shrink-0 text-center">
+          <button
+            type="button"
+            onClick={onClose}
+            className="absolute top-4 right-4 h-8 w-8 rounded-full flex items-center justify-center text-text-muted hover:text-text-primary hover:bg-surface-muted transition-colors cursor-pointer"
+            aria-label="Close modal"
+          >
+            <X className="h-4 w-4" />
+          </button>
 
-        {/* Modal Header & Creator Identity */}
-        <div className="space-y-1.5 pt-1">
-          <div className="inline-flex items-center space-x-1.5 rounded-full bg-brand-soft px-3 py-1 text-xs font-bold text-brand border border-brand/20">
-            <Sparkles className="h-3.5 w-3.5" />
+          <div className="inline-flex items-center space-x-1.5 rounded-full bg-brand-soft px-3 py-0.5 text-[11px] font-bold text-brand border border-brand/20 mb-1.5">
+            <Sparkles className="h-3 w-3" />
             <span>Frenzone Verified Creator</span>
           </div>
 
-          <h2 id="qr-modal-title" className="text-xl font-bold tracking-tight text-text-primary">
+          <h2 id="qr-modal-title" className="text-lg sm:text-xl font-bold tracking-tight text-text-primary">
             Share Your Referral QR Code
           </h2>
-          <p className="text-xs text-text-secondary max-w-xs mx-auto">
-            Scan to instantly access your creator invitation and unlock the 10% lifetime referral bonus.
+          <p className="text-xs text-text-secondary max-w-xs mx-auto mt-0.5">
+            Scan to instantly access your invite and unlock 10% lifetime referral bonus.
           </p>
         </div>
 
-        {/* Loading State */}
-        {isLoading && (
-          <div className="py-12 space-y-4">
-            <div className="mx-auto h-48 w-48 rounded-2xl bg-surface-muted animate-pulse border border-border flex items-center justify-center">
-              <RefreshCw className="h-8 w-8 text-text-muted animate-spin" />
-            </div>
-            <p className="text-xs text-text-muted animate-pulse">
-              Generating your verified referral QR...
-            </p>
-          </div>
-        )}
-
-        {/* Error State */}
-        {!isLoading && error && (
-          <div className="py-8 space-y-4 rounded-xl border border-danger/20 bg-danger/5 p-4">
-            <AlertCircle className="mx-auto h-8 w-8 text-danger" />
-            <p className="text-xs font-semibold text-danger">{error}</p>
-            <Button variant="secondary" size="sm" onClick={fetchReferralData} icon={<RefreshCw className="h-3.5 w-3.5" />}>
-              Try Again
-            </Button>
-          </div>
-        )}
-
-        {/* Ready State */}
-        {!isLoading && !error && data && (
-          <>
-            {/* Creator Monogram / Avatar Card */}
-            <div className="flex items-center justify-center space-x-2.5 rounded-xl bg-surface-muted/60 p-2.5 border border-border">
-              {data.avatarUrl ? (
-                <img
-                  src={data.avatarUrl}
-                  alt={displayName}
-                  className="h-8 w-8 rounded-full object-cover border border-border"
-                />
-              ) : (
-                <div className="h-8 w-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center">
-                  {initials}
-                </div>
-              )}
-              <div className="text-left">
-                <p className="text-xs font-bold text-text-primary leading-none">{displayName}</p>
-                <p className="text-[11px] text-text-muted mt-0.5">
-                  Code: <strong className="font-mono text-brand">{data.referralCode}</strong>
-                </p>
+        {/* Modal Body (Scrollable with smooth overscroll) */}
+        <div className="overflow-y-auto px-5 sm:px-6 py-4 space-y-3.5 overscroll-contain flex-1">
+          {/* Loading State */}
+          {isLoading && (
+            <div className="py-10 space-y-3">
+              <div className="mx-auto h-40 w-40 rounded-2xl bg-surface-muted animate-pulse border border-border flex items-center justify-center">
+                <RefreshCw className="h-7 w-7 text-text-muted animate-spin" />
               </div>
-              <ShieldCheck className="h-4 w-4 text-brand ml-auto shrink-0" />
-            </div>
-
-            {/* High-Precision QR Canvas Container */}
-            <div className="mx-auto flex h-56 w-56 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-3 shadow-inner">
-              <canvas
-                ref={canvasRef}
-                className="h-48 w-48 rounded-xl object-contain"
-                aria-label={`QR Code for referral link ${activeUrl}`}
-              />
-            </div>
-
-            {/* Canonical Link Display Bar */}
-            <div className="space-y-1 text-left">
-              <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
-                Canonical Referral URL
-              </label>
-              <div className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-mono text-text-primary">
-                <span className="truncate mr-2 select-all">{activeUrl}</span>
-                <button
-                  type="button"
-                  onClick={handleCopyLink}
-                  className="shrink-0 text-brand hover:text-brand-hover font-sans font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
-                  title="Copy link to clipboard"
-                >
-                  {copied ? (
-                    <>
-                      <Check className="h-3.5 w-3.5 text-success" />
-                      <span className="text-success text-[11px]">Copied</span>
-                    </>
-                  ) : (
-                    <>
-                      <Copy className="h-3.5 w-3.5" />
-                      <span className="text-[11px]">Copy</span>
-                    </>
-                  )}
-                </button>
-              </div>
-            </div>
-
-            {shareFeedback && (
-              <p className="text-xs font-semibold text-brand animate-in fade-in">
-                {shareFeedback}
+              <p className="text-xs text-text-muted animate-pulse">
+                Generating your verified referral QR...
               </p>
-            )}
+            </div>
+          )}
 
-            {/* 3 Core Action Buttons: Copy, Download, Share */}
-            <div className="grid grid-cols-3 gap-2 pt-1">
+          {/* Error State */}
+          {!isLoading && error && (
+            <div className="py-6 space-y-3 rounded-xl border border-danger/20 bg-danger/5 p-4">
+              <AlertCircle className="mx-auto h-7 w-7 text-danger" />
+              <p className="text-xs font-semibold text-danger">{error}</p>
+              <Button variant="secondary" size="sm" onClick={fetchReferralData} icon={<RefreshCw className="h-3.5 w-3.5" />}>
+                Try Again
+              </Button>
+            </div>
+          )}
+
+          {/* Ready State */}
+          {!isLoading && !error && data && (
+            <>
+              {/* Creator Monogram / Avatar Card */}
+              <div className="flex items-center justify-between rounded-xl bg-surface-muted/60 px-3 py-2 border border-border">
+                <div className="flex items-center space-x-2.5">
+                  {data.avatarUrl ? (
+                    <img
+                      src={data.avatarUrl}
+                      alt={displayName}
+                      className="h-8 w-8 rounded-full object-cover border border-border"
+                    />
+                  ) : (
+                    <div className="h-8 w-8 rounded-full bg-brand text-white font-bold text-xs flex items-center justify-center">
+                      {initials}
+                    </div>
+                  )}
+                  <div className="text-left">
+                    <p className="text-xs font-bold text-text-primary leading-tight">{displayName}</p>
+                    <p className="text-[11px] text-text-muted mt-0.5">
+                      Code: <strong className="font-mono text-brand">{data.referralCode}</strong>
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-1 text-[11px] font-semibold text-brand bg-brand-soft/70 px-2 py-0.5 rounded-md border border-brand/20">
+                  <ShieldCheck className="h-3.5 w-3.5" />
+                  <span>Verified</span>
+                </div>
+              </div>
+
+              {/* High-Precision QR Canvas Container */}
+              <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner">
+                <canvas
+                  ref={canvasRef}
+                  className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain"
+                  aria-label={`QR Code for referral link ${activeUrl}`}
+                />
+              </div>
+
+              {/* Canonical Link Display Bar */}
+              <div className="space-y-1 text-left">
+                <label className="text-[10px] font-bold uppercase tracking-wider text-text-muted">
+                  Canonical Referral URL
+                </label>
+                <div className="flex items-center justify-between rounded-xl border border-border bg-surface-muted px-3 py-2 text-xs font-mono text-text-primary">
+                  <span className="truncate mr-2 select-all">{activeUrl}</span>
+                  <button
+                    type="button"
+                    onClick={handleCopyLink}
+                    className="shrink-0 text-brand hover:text-brand-hover font-sans font-semibold text-xs transition-colors cursor-pointer flex items-center gap-1"
+                    title="Copy link to clipboard"
+                  >
+                    {copied ? (
+                      <>
+                        <Check className="h-3.5 w-3.5 text-success" />
+                        <span className="text-success text-[11px]">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="h-3.5 w-3.5" />
+                        <span className="text-[11px]">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {shareFeedback && (
+                <p className="text-xs font-semibold text-brand animate-in fade-in">
+                  {shareFeedback}
+                </p>
+              )}
+            </>
+          )}
+        </div>
+
+        {/* Modal Footer with Action Buttons (Pinned) */}
+        {!isLoading && !error && data && (
+          <div className="px-5 sm:px-6 py-3.5 border-t border-border/50 bg-surface/95 backdrop-blur-xs shrink-0">
+            <div className="grid grid-cols-3 gap-2">
               <Button
                 type="button"
                 variant="secondary"
@@ -350,7 +362,7 @@ export function ShareQrModal({
                 Share
               </Button>
             </div>
-          </>
+          </div>
         )}
       </div>
     </div>

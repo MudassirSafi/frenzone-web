@@ -25,7 +25,8 @@ export function ShareQrModal({
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [shareFeedback, setShareFeedback] = useState<string | null>(null);
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>("");
+  const [isGeneratingQr, setIsGeneratingQr] = useState(false);
 
   // Fetch or sync server-authoritative referral info
   const fetchReferralData = async () => {
@@ -78,6 +79,7 @@ export function ShareQrModal({
     } else {
       setCopied(false);
       setShareFeedback(null);
+      setQrDataUrl("");
     }
   }, [isOpen, initialCode, initialLink]);
 
@@ -87,20 +89,38 @@ export function ShareQrModal({
     data?.referralUrl || data?.referralLink || initialLink
   );
 
+  // Declarative QR Data URL generation — completely immune to DOM ref timing or CSS animation blank canvas bugs
   useEffect(() => {
-    if (isOpen && activeUrl && canvasRef.current) {
-      QRCode.toCanvas(canvasRef.current, activeUrl, {
+    let isCancelled = false;
+    if (isOpen && activeUrl) {
+      setIsGeneratingQr(true);
+      QRCode.toDataURL(activeUrl, {
         errorCorrectionLevel: "H",
-        width: 200,
+        width: 480,
         margin: 2,
         color: {
           dark: "#0f172a", // Deep slate for maximum contrast and reliability
           light: "#ffffff",
         },
-      }).catch((err) => {
-        console.error("Canvas QR Code generation error:", err);
-      });
+      })
+        .then((url) => {
+          if (!isCancelled) {
+            setQrDataUrl(url);
+            setIsGeneratingQr(false);
+          }
+        })
+        .catch((err) => {
+          console.error("QR Code generation error:", err);
+          if (!isCancelled) {
+            setIsGeneratingQr(false);
+          }
+        });
+    } else {
+      setQrDataUrl("");
     }
+    return () => {
+      isCancelled = true;
+    };
   }, [isOpen, activeUrl]);
 
   // Handle keyboard Escape to dismiss
@@ -290,13 +310,20 @@ export function ShareQrModal({
                 </div>
               </div>
 
-              {/* High-Precision QR Canvas Container */}
+              {/* High-Precision Verified QR Image Container */}
               <div className="mx-auto flex h-48 w-48 sm:h-52 sm:w-52 items-center justify-center rounded-2xl border-2 border-brand/20 bg-white p-2.5 shadow-inner">
-                <canvas
-                  ref={canvasRef}
-                  className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain"
-                  aria-label={`QR Code for referral link ${activeUrl}`}
-                />
+                {qrDataUrl ? (
+                  <img
+                    src={qrDataUrl}
+                    alt={`QR Code for referral link ${activeUrl}`}
+                    className="h-44 w-44 sm:h-48 sm:w-48 rounded-xl object-contain select-none"
+                  />
+                ) : (
+                  <div className="flex flex-col items-center justify-center space-y-2 py-8">
+                    <RefreshCw className="h-6 w-6 text-brand animate-spin" />
+                    <span className="text-[11px] font-medium text-text-muted">Generating QR code...</span>
+                  </div>
+                )}
               </div>
 
               {/* Canonical Link Display Bar */}

@@ -24,37 +24,53 @@ import type {
 export class CreatorService {
   async getDashboard(): Promise<CreatorDashboard> {
     try {
-      const res = await apiClient.get<{ success: boolean; data: any }>("/creator/dashboard");
-      if (res?.data) {
-        const d = res.data;
-        const stats = d.stats || {};
-        return {
-          liveHours: typeof d.liveHours === "number" ? d.liveHours : 0,
-          liveDurationSeconds: d.liveDurationSeconds ?? 0,
-          liveDurationFormatted: d.liveDurationFormatted || undefined,
-          liveHoursTarget: d.liveHoursTarget ?? 40,
-          contentProgress: typeof d.contentProgress === "number" ? d.contentProgress : 0,
-          complianceStatus: d.complianceStatus ?? (d.isApproved ? "COMPLETED" : "PARTIAL"),
-          availableEarnings: d.availableEarnings || {
-            amount: Number(stats.estimatedEarningsUSD || 0).toFixed(2),
-            currency: "USD",
-          },
-          pendingEarnings: d.pendingEarnings || {
-            amount: "0.00",
-            currency: "USD",
-          },
-          totalViewers: d.totalViewers ?? (stats.followersCount || stats.totalLikes || 0),
-          referralCode: d.referralCode || "",
-          referralLink: getCanonicalReferralUrl(d.referralCode, d.referralLink),
-          recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
-          trends: d.trends || undefined,
-        };
+      const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? JSON.parse(userStr) : null;
+      const userid = user?._id || user?.id;
+
+      let backendUser: any = null;
+      let analysis: any = null;
+
+      if (userid) {
+        try {
+          const [uRes, aRes] = await Promise.all([
+            apiClient.get<{ user?: any; data?: any }>(`/user/getUserById/${userid}`).catch(() => null),
+            apiClient.get<{ analysis?: any }>(`/stream/recentAnalysis/${userid}`).catch(() => null),
+          ]);
+          backendUser = uRes?.user || uRes?.data || user;
+          analysis = aRes?.analysis || null;
+        } catch {
+          // Fallback to local session
+        }
       }
+
+      const activeUser = backendUser || user || {};
+      const diamonds = Number(analysis?.diamondsEarned || activeUser.diamonds || 0);
+
+      return {
+        liveHours: analysis?.durationSeconds ? Number((analysis.durationSeconds / 3600).toFixed(1)) : 0,
+        liveDurationSeconds: analysis?.durationSeconds || 0,
+        liveDurationFormatted: analysis?.durationSeconds ? `${Math.floor(analysis.durationSeconds / 60)}m` : undefined,
+        liveHoursTarget: 40,
+        contentProgress: activeUser.liveAccess !== false ? 100 : 50,
+        complianceStatus: activeUser.liveAccess !== false ? "COMPLETED" : "PARTIAL",
+        availableEarnings: {
+          amount: diamonds.toFixed(2),
+          currency: "USD",
+        },
+        pendingEarnings: {
+          amount: "0.00",
+          currency: "USD",
+        },
+        totalViewers: analysis?.likes || (Array.isArray(activeUser.followers) ? activeUser.followers.length : 0),
+        referralCode: activeUser.referralCode || activeUser.username || "",
+        referralLink: getCanonicalReferralUrl(activeUser.referralCode || activeUser.username || ""),
+        recentActivities: [],
+      };
     } catch (err: any) {
       console.error("Failed to load creator dashboard:", err?.message || err);
       throw err;
     }
-    throw new Error("Failed to load creator dashboard");
   }
 
   async getActivities(): Promise<CreatorActivityItem[]> {

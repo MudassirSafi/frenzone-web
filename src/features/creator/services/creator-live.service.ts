@@ -97,7 +97,7 @@ export class CreatorLiveService {
    * Verifies account eligibility and retrieves active session conflicts via /user/getUser or /stream/getStreamByUserId.
    */
   async checkLiveStatus(): Promise<CreatorLiveStatusResponse> {
-    const agoraAppId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "6f6004b96dfc45ffae4d2719a0ee447b";
+    const agoraAppId = process.env.NEXT_PUBLIC_AGORA_APP_ID || "5d2e580f5cbe44688693c2928d2984b2";
     try {
       const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
       const user = userStr ? JSON.parse(userStr) : null;
@@ -187,13 +187,13 @@ export class CreatorLiveService {
     if (res && res._id && res.channelName) {
       const appId = (res.appId && !res.appId.includes("placeholder"))
         ? res.appId
-        : (process.env.NEXT_PUBLIC_AGORA_APP_ID || "6f6004b96dfc45ffae4d2719a0ee447b");
+        : (process.env.NEXT_PUBLIC_AGORA_APP_ID || "5d2e580f5cbe44688693c2928d2984b2");
       return {
         success: true,
         session: {
           streamId: res._id,
           channelName: res.channelName,
-          token: (res.token && String(res.token).trim() !== "") ? String(res.token).trim() : null,
+          token: (res.token && String(res.token).trim() !== "" && !String(res.token).startsWith("dev_token_")) ? String(res.token).trim() : null,
           uid: agoraUid,
           appId,
           startedAt: new Date().toISOString(),
@@ -227,7 +227,10 @@ export class CreatorLiveService {
     metrics?: { durationSeconds?: number; peakViewers?: number; totalDiamonds?: number }
   ): Promise<LiveEndResponse> {
     try {
-      await apiClient.delete("/stream/deleteStream", { streamid: streamId });
+      await apiClient.delete("/stream/deleteStream", {
+        streamid: streamId,
+        durationSeconds: metrics?.durationSeconds || 0,
+      });
     } catch (err: any) {
       console.warn("Notice: deleteStream response:", err?.message || err);
     }

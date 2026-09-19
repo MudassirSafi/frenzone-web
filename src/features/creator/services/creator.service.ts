@@ -24,45 +24,42 @@ import type {
 export class CreatorService {
   async getDashboard(): Promise<CreatorDashboard> {
     try {
-      const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
-      const user = userStr ? JSON.parse(userStr) : null;
-      const userid = user?._id || user?.id;
+      // Call the authoritative /creator/dashboard endpoint which reads
+      // StreamAnalysis, Referral, Wallet, and Activity collections from DB
+      const res = await apiClient.get<{ success: boolean; data?: any }>("/creator/dashboard").catch(() => null);
 
-      let backendUser: any = null;
-      let analysis: any = null;
-
-      if (userid) {
-        try {
-          const [uRes, aRes] = await Promise.all([
-            apiClient.get<{ user?: any; data?: any }>(`/user/getUserById/${userid}`).catch(() => null),
-            apiClient.get<{ analysis?: any }>(`/stream/recentAnalysis/${userid}`).catch(() => null),
-          ]);
-          backendUser = uRes?.user || uRes?.data || user;
-          analysis = aRes?.analysis || null;
-        } catch {
-          // Fallback to local session
-        }
+      if (res?.data) {
+        const d = res.data;
+        return {
+          liveHours: d.liveHours || 0,
+          liveHoursTarget: d.liveHoursTarget || 40,
+          contentProgress: d.contentProgress || 0,
+          complianceStatus: d.complianceStatus || "PARTIAL",
+          availableEarnings: d.availableEarnings || { amount: "0.00", currency: "USD" },
+          pendingEarnings: d.pendingEarnings || { amount: "0.00", currency: "USD" },
+          totalViewers: d.totalViewers || 0,
+          referralCode: d.referralCode || "",
+          referralLink: d.referralLink || getCanonicalReferralUrl(d.referralCode || ""),
+          recentActivities: Array.isArray(d.recentActivities) ? d.recentActivities : [],
+          trends: d.trends,
+          // Use backend-computed formatted string (e.g. "3m" or "1.5h")
+          liveDurationFormatted: d.liveDurationFormatted || (d.liveHours > 0 ? `${d.liveHours}h` : undefined),
+          liveDurationSeconds: d.liveDurationSeconds || 0,
+        };
       }
 
-      const activeUser = backendUser || user || {};
-      const diamonds = Number(analysis?.diamondsEarned || activeUser.diamonds || 0);
-
+      // Fallback: build from local session if backend unreachable
+      const userStr = typeof window !== "undefined" ? localStorage.getItem("user") : null;
+      const user = userStr ? JSON.parse(userStr) : null;
+      const activeUser = user || {};
       return {
-        liveHours: analysis?.durationSeconds ? Number((analysis.durationSeconds / 3600).toFixed(1)) : 0,
-        liveDurationSeconds: analysis?.durationSeconds || 0,
-        liveDurationFormatted: analysis?.durationSeconds ? `${Math.floor(analysis.durationSeconds / 60)}m` : undefined,
+        liveHours: 0,
         liveHoursTarget: 40,
         contentProgress: activeUser.liveAccess !== false ? 100 : 50,
         complianceStatus: activeUser.liveAccess !== false ? "COMPLETED" : "PARTIAL",
-        availableEarnings: {
-          amount: diamonds.toFixed(2),
-          currency: "USD",
-        },
-        pendingEarnings: {
-          amount: "0.00",
-          currency: "USD",
-        },
-        totalViewers: analysis?.likes || (Array.isArray(activeUser.followers) ? activeUser.followers.length : 0),
+        availableEarnings: { amount: "0.00", currency: "USD" },
+        pendingEarnings: { amount: "0.00", currency: "USD" },
+        totalViewers: Array.isArray(activeUser.followers) ? activeUser.followers.length : 0,
         referralCode: activeUser.referralCode || activeUser.username || "",
         referralLink: getCanonicalReferralUrl(activeUser.referralCode || activeUser.username || ""),
         recentActivities: [],
